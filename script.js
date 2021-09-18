@@ -2,6 +2,9 @@ const transactionUl = document.querySelector('#transactions')
 const incomeDisplay = document.querySelector('#money-plus')
 const expenseDisplay = document.querySelector('#money-minus')
 const balanceDisplay = document.querySelector('#balance')
+const form = document.querySelector('#form')
+const inputTransactionName = document.querySelector('#text')
+const inputTransactionAmount = document.querySelector('#amount')
 
 const real = valor => `R$ ${valor.toFixed(2).replace('.', ',')}`
 
@@ -52,8 +55,34 @@ const updateBalanceValues = () => {
 }
 
 const init = () => {
+  transactionUl.innerHTML = ''
   dummyTransactions.forEach(addTransactionIntoDom)
   updateBalanceValues()
 }
 
 init()
+
+const generateID = () => Math.round(Math.random() * 1000)
+
+form.addEventListener('submit', event => {
+  event.preventDefault()
+
+  const transactionName = inputTransactionName.value.trim()
+  const transactionAmount = inputTransactionAmount.value.trim()
+  if (transactionName === '' || transactionAmount === '') {
+    alert('Por Favor, preencha tanto o nome quanto o valor da transação')
+    return
+  }
+
+  const transaction = {
+    id: generateID,
+    name: transactionName,
+    amount: transactionAmount
+  }
+
+  dummyTransactions.push(transaction)
+  init()
+
+  inputTransactionName.value = ''
+  inputTransactionAmount.value = ''
+})
