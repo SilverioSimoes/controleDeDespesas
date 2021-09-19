@@ -8,12 +8,17 @@ const inputTransactionAmount = document.querySelector('#amount')
 
 const real = valor => `R$ ${valor.toFixed(2).replace('.', ',')}`
 
-const dummyTransactions = [
-  { id: 1, name: 'Bolo de brigadeiro', amount: -20 },
-  { id: 2, name: 'Salário', amount: 300 },
-  { id: 3, name: 'Torta de frango', amount: -10 },
-  { id: 4, name: 'Violão', amount: 150 }
-]
+const localStorageTransactions = JSON.parse(
+  localStorage.getItem('transactions')
+)
+let transactions =
+  localStorage.getItem('transactions') !== null ? localStorageTransactions : []
+
+const removeTransaction = ID => {
+  transactions = transactions.filter(transaction => transaction.id !== ID)
+  updateLocalStorage()
+  init()
+}
 
 const addTransactionIntoDom = transaction => {
   const operator = transaction.amount < 0 ? '-' : '+'
@@ -24,15 +29,15 @@ const addTransactionIntoDom = transaction => {
   li.classList.add(CSSClass)
   li.innerHTML = `
   ${transaction.name} <span>${operator} ${real(amountWithoutOperator)}</span>
-  <button class="delete-btn">x</button>
+  <button class="delete-btn" onclick = "removeTransaction(${
+    transaction.id
+  })">x</button>
   `
   transactionUl.append(li)
 }
 
 const updateBalanceValues = () => {
-  const transactionsAmounts = dummyTransactions.map(
-    transaction => transaction.amount
-  )
+  const transactionsAmounts = transactions.map(({ amount }) => amount)
   const total = real(transactionsAmounts.reduce((acc, valor) => acc + valor, 0))
 
   const income = real(
@@ -56,33 +61,40 @@ const updateBalanceValues = () => {
 
 const init = () => {
   transactionUl.innerHTML = ''
-  dummyTransactions.forEach(addTransactionIntoDom)
+  transactions.forEach(addTransactionIntoDom)
   updateBalanceValues()
 }
 
 init()
 
+const updateLocalStorage = () => {
+  localStorage.setItem('transactions', JSON.stringify(transactions))
+}
+
 const generateID = () => Math.round(Math.random() * 1000)
 
-form.addEventListener('submit', event => {
+const handleFormSubmit = event => {
   event.preventDefault()
 
   const transactionName = inputTransactionName.value.trim()
   const transactionAmount = inputTransactionAmount.value.trim()
   if (transactionName === '' || transactionAmount === '') {
-    alert('Por Favor, preencha tanto o nome quanto o valor da transação')
+    alert('Por Favor, preencha tanto o nome quanto o valor da transação!')
     return
   }
 
   const transaction = {
     id: generateID,
     name: transactionName,
-    amount: transactionAmount
+    amount: Number(transactionAmount)
   }
 
-  dummyTransactions.push(transaction)
+  transactions.push(transaction)
+  updateLocalStorage()
   init()
 
   inputTransactionName.value = ''
   inputTransactionAmount.value = ''
-})
+}
+
+form.addEventListener('submit', handleFormSubmit)
